@@ -8,37 +8,52 @@
  */
 
 class SceneNode {
-    constructor(meshDrawer, trs, parent = null) {
-        this.meshDrawer = meshDrawer;
-        this.trs = trs;
-        this.parent = parent;
-        this.children = [];
+  constructor(meshDrawer, trs, parent = null) {
+    this.meshDrawer = meshDrawer;
+    this.trs = trs;
+    this.parent = parent;
+    this.children = [];
 
-        if (parent) {
-            this.parent.__addChild(this);
-        }
+    if (parent) {
+      this.parent.__addChild(this);
+    }
+  }
+
+  __addChild(node) {
+    this.children.push(node);
+  }
+  draw(mvp, modelView, normalMatrix, modelMatrix) {
+    /**
+     * @Task1 : Implement the draw function for the SceneNode class using the TRS class.
+     */
+
+    // Get the transformation matrix for the current node
+    const transformationMatrix = this.trs.getTransformationMatrix();
+
+    // Apply the current node's transformations to the provided matrices
+    const transformedModel = MatrixMult(modelMatrix, transformationMatrix);
+    const transformedModelView = MatrixMult(modelView, transformationMatrix);
+    const transformedMvp = MatrixMult(mvp, transformationMatrix);
+    const transformedNormals = MatrixMult(normalMatrix, transformationMatrix); // Assumes normals transformation is uniform scaling
+
+    // Draw the MeshDrawer for the current node
+    if (this.meshDrawer) {
+      this.meshDrawer.draw(
+        transformedMvp,
+        transformedModelView,
+        transformedNormals,
+        transformedModel
+      );
     }
 
-    __addChild(node) {
-        this.children.push(node);
+    // Recursively draw child nodes
+    for (const child of this.children) {
+      child.draw(
+        transformedMvp,
+        transformedModelView,
+        transformedNormals,
+        transformedModel
+      );
     }
-
-    draw(mvp, modelView, normalMatrix, modelMatrix) {
-        /**
-         * @Task1 : Implement the draw function for the SceneNode class.
-         */
-        
-        var transformedMvp = mvp;
-        var transformedModelView = modelView;
-        var transformedNormals = normalMatrix;
-        var transformedModel = modelMatrix;
-
-        // Draw the MeshDrawer
-        if (this.meshDrawer) {
-            this.meshDrawer.draw(transformedMvp, transformedModelView, transformedNormals, transformedModel);
-        }
-    }
-
-    
-
+  }
 }
